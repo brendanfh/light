@@ -1,0 +1,16 @@
+ROBOT PROGRAMMING AND VISUALS
+
+Create custom programming language that instructions robots to move around a grid and perform tasks.
+Visualize this system with OpenGL 3.0 ES
+
+Language may look something like this:
+
+$A = 10
+:LOOP_TOP
+	IF $A ~= 0 THEN
+		$A = $A - 1
+		GOTO :LOOP_TOP
+	END
+
+This is compiled to a bytecode, which is executed by the program.
+Language is compiled at runtime, then bytecode is used.
