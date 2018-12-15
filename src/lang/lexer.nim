@@ -6,33 +6,45 @@ import ./types
 import ./tokens
 
 iterator Generate_tokens*(source: string): LightToken =
-  for token, is_sep in strutils.tokenize(source, {' ', '\n', ';', '\t', '='}):
+  for token, is_sep in strutils.tokenize(source, {' ', '\n', ';', '\t', '=', ',', '(', ')'}):
     if is_sep:
-      if token.contains({'\n', ';'}):
-        yield LightToken(kind: ltExprDelim)
       if token.contains({'='}):
         yield LightToken(kind: ltEq)
+      if token.contains({','}):
+        yield LightToken(kind: ltParamDelim)
+      if token.contains({'('}):
+        yield LightToken(kind: ltParamStart)
+      if token.contains({')'}):
+        yield LightToken(kind: ltParamEnd)
+      if token.contains({'\n', ';'}):
+        yield LightToken(kind: ltExprDelim)
       continue
 
     if token.startsWith('$'):
-      let varString = token[1 .. ^1]
+      let varString = token[1 .. ^1].toLowerAscii
       var varName: LightVariable
 
       if varString == "":
         raise newException(IOError, "Expected variable name")
       else:
-        if varString == "MEM_1": varName = var1
-        elif varString == "MEM_2": varName = var2
-        elif varString == "MEM_3": varName = var3
-        elif varString == "MEM_4": varName = var4
-        elif varString == "MEM_5": varName = var5
-        elif varString == "MEM_6": varName = var6
-        elif varString == "MEM_7": varName = var7
-        elif varString == "MEM_8": varName = var8
+        if varString == "mem_1": varName = var1
+        elif varString == "mem_2": varName = var2
+        elif varString == "mem_3": varName = var3
+        elif varString == "mem_4": varName = var4
+        elif varString == "mem_5": varName = var5
+        elif varString == "mem_6": varName = var6
+        elif varString == "mem_7": varName = var7
+        elif varString == "mem_8": varName = var8
+        elif varString == "pos_x": varName = var9
+        elif varString == "pos_y": varName = var10
         else:
           raise newException(IOError, "Invalid variable name.")
 
       yield LightToken(kind: ltVar, var_name: varName)
+
+    elif token.startsWith('!'):
+      let funcName = token[1..^1].toLowerAscii
+      yield LightToken(kind: ltFunc, func_name: funcName)
 
     elif token == "=":
       yield LightToken(kind: ltEq)

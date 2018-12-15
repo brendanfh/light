@@ -1,6 +1,7 @@
 import os
 import sequtils
 import opengl
+import random
 import glfw3 as glfw
 import gfx/window as gfx_window
 import gfx/glutils as glutils
@@ -10,17 +11,15 @@ import lang/lexer as lexer
 import lang/parser as parser
 import lang/tokens
 
+import board/board
+
 proc key_down(window: glfw.Window, key, scancode, action, modifier: cint) {.cdecl.} =
   if key == glfw.KEY_ESCAPE and action == glfw.PRESS:
     glfw.SetWindowShouldClose(window, glfw.TRUE)
 
 proc main2() =
   let window = gfxWindow.NewWindow(800, 600, "ASDF")
-
   window.SetKeyCallback(key_down)
-
-  var version = cast[cstring](glGetString(GL_VERSION))
-  echo $version
 
   let vertex_shader = glutils.CreateShader(glutils.stVertex, "./data/shaders/basic.vert")
   let fragment_shader = glutils.CreateShader(glutils.stFragment, "./data/shaders/basic.frag")
@@ -69,28 +68,32 @@ proc main2() =
 
   glBindVertexArray(0)
 
+
+proc main() =
+  let window = gfxWindow.NewWindow(1200, 700, "ASDF")
+  window.SetKeyCallback(key_down)
+
+  let source_code = readFile("data/progs/test.lgt")
+  let tokens = toSeq(lexer.GenerateTokens(source_code))
+  for exp in parser.ParseTokens(tokens):
+    echo exp
+
+  let board = CreateBoard(256, 256)
+  board.InitRendering()
+
   while not window.ShouldClose():
     glClearColor(0, 0, 0, 1)
     glClear(GL_COLOR_BUFFER_BIT)
 
-    glBindVertexArray(vao)
-    glDrawElementsInstanced(GL_TRIANGLES, 3.GLsizei, GL_UNSIGNED_INT, nil, 2)
-    glBindVertexArray(0)
+    board.SetCol(random.rand(256), random.rand(256), random.rand(0xffffff).GLuint)
+    
+    board.RebufferColors()
+    board.Render()
 
+    os.sleep(1)
     window.Refresh()
 
   window.CloseWindow()
-
-proc main() =
-  let source_code = readFile("data/progs/test.lgt")
-  let tokens = toSeq(lexer.GenerateTokens(source_code))
-  for token in tokens:
-    echo token
-
-  echo "\n\n\n"
-
-  for exp in parser.ParseTokens(tokens):
-    echo exp
 
 when isMainModule:
   main()

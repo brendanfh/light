@@ -6,8 +6,12 @@ type
     ltVar, ltNum,
     ltExprDelim,
     ltLabel, ltGoto,
-    ltIf, ltWhile, ltBlockStart, ltBlockEnd,
+    ltIf, ltWhile,
+    ltBlockStart, ltBlockEnd,
     ltBreak,
+    ltFunc,
+    ltParamStart, ltParamEnd,
+    ltParamDelim,
     ltOp, ltEq
 
   LightToken* = ref object
@@ -18,6 +22,8 @@ type
       value*: LightInt
     of ltLabel:
       label_name*: string
+    of ltFunc:
+      func_name*: string
     of ltOp:
       operation*: LightOperation
     else:
@@ -33,6 +39,8 @@ func `$`*(variable: LightVariable): string =
   of var6: "MEM_6"
   of var7: "MEM_7"
   of var8: "MEM_8"
+  of var9: "POS_X"
+  of var10: "POS_Y"
 
 proc `$`*(token: LightToken): string =
   return
@@ -49,4 +57,9 @@ proc `$`*(token: LightToken): string =
     of ltBreak: "BreakToken"
     of ltBlockStart: "BlockStartToken"
     of ltBlockEnd: "BlockEndToken"
+    of ltFunc: "FunctionToken[" & token.func_name & "]"
+    of ltParamStart: "ParamStartToken"
+    of ltParamEnd: "ParamEndToken"
+    of ltParamDelim: "ParamDelimToken"
     of ltOp: "OpeartionToken[" & $token.operation & "]"
+    else: "UndefinedToken"

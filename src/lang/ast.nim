@@ -3,16 +3,17 @@ import ./tokens
 
 type
   LightExprType* = enum
-    leNull    = 0,
-    leVar     = 1,
-    leNumLit  = 2,
-    leOp      = 3,
-    leAssign  = 4,
-    leLabel   = 5,
-    leGoto    = 6,
-    leIf      = 7,
-    leWhile   = 8,
-    leBreak   = 9
+    leNull     = 0,
+    leVar      = 1,
+    leNumLit   = 2,
+    leOp       = 3,
+    leAssign   = 4,
+    leLabel    = 5,
+    leGoto     = 6,
+    leIf       = 7,
+    leWhile    = 8,
+    leBreak    = 9,
+    leFuncCall = 10,
 
   LightExpr* = ref object
     case kind*: LightExprType
@@ -32,6 +33,9 @@ type
     of leIf, leWhile:
       condition*: LightExpr
       body*: seq[LightExpr]
+    of leFuncCall:
+      func_name*: string
+      params*: seq[LightExpr]
     else: 
       discard
 
@@ -46,4 +50,5 @@ proc `$`*(exp: LightExpr): string =
   of leIf: "If[" & $exp.condition & " -> " & $exp.body & "]"
   of leWhile: "While[" & $exp.condition & " -> " & $exp.body & "]"
   of leBreak: "Break"
+  of leFuncCall: "FuncCall[" & exp.func_name & ", " & $exp.params & "]"
   else: ""

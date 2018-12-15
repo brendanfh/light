@@ -5,4 +5,11 @@ WHILE $MEM_2 < 100000 DO
 	$MEM_3 = $MEM_1 + $MEM_2
 	$MEM_1 = $MEM_2
 	$MEM_2 = $MEM_3
+	!PRINT($MEM_3, 3 + $MEM_7)
 END
+
+IF !IN_BOUNDS($POS_X + 1, $POS_Y) THEN
+	!SAY($MEM_8)
+END
+
+!REDRAW()
