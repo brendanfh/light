@@ -15,5 +15,5 @@ requires "opengl >= 1.2.0"
 requires "glfw"
 
 task run, "Run project":
-  exec("nimble build")
+  exec("nimble build -d:release")
   exec("./christmas_proj")

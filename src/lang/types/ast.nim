@@ -14,6 +14,7 @@ type
     leWhile    = 8,
     leBreak    = 9,
     leFuncCall = 10,
+    leFuncDef  = 11,
 
   LightExpr* = ref object
     case kind*: LightExprType
@@ -36,6 +37,9 @@ type
     of leFuncCall:
       func_name*: string
       params*: seq[LightExpr]
+    of leFuncDef:
+      def_func_name*: string
+      func_body*: seq[LightExpr]
     else: 
       discard
 
@@ -51,4 +55,5 @@ proc `$`*(exp: LightExpr): string =
   of leWhile: "While[" & $exp.condition & " -> " & $exp.body & "]"
   of leBreak: "Break"
   of leFuncCall: "FuncCall[" & exp.func_name & ", " & $exp.params & "]"
+  of leFuncDef: "FuncDef[" & exp.def_func_name & ", " & $exp.func_body & "]"
   else: ""

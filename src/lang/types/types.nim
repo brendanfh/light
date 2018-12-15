@@ -2,7 +2,7 @@ type
   LightVariable* = enum
     var1 = 0, var2 = 1, var3 = 2, var4 = 3,
     var5 = 4, var6 = 5, var7 = 6, var8 = 7,
-    var9 = 8, var10 = 9
+    varX = 8, varY = 9
     
   LightOperation* = enum
     loAdd, loSub, loMul, loDiv, loMod,

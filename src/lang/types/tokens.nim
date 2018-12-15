@@ -12,6 +12,7 @@ type
     ltFunc,
     ltParamStart, ltParamEnd,
     ltParamDelim,
+    ltFuncDef,
     ltOp, ltEq
 
   LightToken* = ref object
@@ -22,7 +23,7 @@ type
       value*: LightInt
     of ltLabel:
       label_name*: string
-    of ltFunc:
+    of ltFunc, ltFuncDef:
       func_name*: string
     of ltOp:
       operation*: LightOperation
@@ -39,8 +40,8 @@ func `$`*(variable: LightVariable): string =
   of var6: "MEM_6"
   of var7: "MEM_7"
   of var8: "MEM_8"
-  of var9: "POS_X"
-  of var10: "POS_Y"
+  of varX: "POS_X"
+  of varY: "POS_Y"
 
 proc `$`*(token: LightToken): string =
   return
@@ -61,5 +62,6 @@ proc `$`*(token: LightToken): string =
     of ltParamStart: "ParamStartToken"
     of ltParamEnd: "ParamEndToken"
     of ltParamDelim: "ParamDelimToken"
+    of ltFuncDef: "FuncDefToken[" & token.func_name & "]"
     of ltOp: "OpeartionToken[" & $token.operation & "]"
     else: "UndefinedToken"

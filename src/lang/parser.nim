@@ -1,7 +1,7 @@
 
-import ./types
-import ./tokens
-import ./ast
+import ./types/types
+import ./types/tokens
+import ./types/ast
 
 import ../utils/iter
 
@@ -126,6 +126,24 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
       kind: leFuncCall,
       func_name: curr.func_name,
       params: params
+    )
+  
+  elif curr.kind == ltFuncDef:
+    if parser.tokens.Current.kind != ltBlockStart:
+      raise newException(ValueError, "Expected block start after function definition")
+    
+    parser.tokens.Step()
+    let body = Parse_block(parser.tokens, ltExprDelim, ltBlockEnd)
+    
+    return LightExpr(
+      kind: leFuncDef,
+      def_func_name: curr.func_name,
+      func_body: body
+    )
+
+  else:
+    return LightExpr(
+      kind: leNull
     )
   
 iterator Parse_tokens*(tokens: seq[LightToken]): LightExpr =

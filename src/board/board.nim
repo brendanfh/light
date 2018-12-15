@@ -2,7 +2,7 @@ import opengl
 import ../gfx/glutils
 
 type
-  LightBoard = ref object
+  LightBoard* = ref object
     width: int
     height: int
     data: ref array[1024 * 1024, GLuint]

@@ -2,7 +2,7 @@ import glfw3 as glfw
 import opengl
 
 type
-  Window* = object
+  Window* = ref object
     window: glfw.Window
     width, height: cint
     title: cstring
