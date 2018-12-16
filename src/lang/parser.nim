@@ -46,11 +46,11 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
       of ltNum: LightExpr(kind: leNumLit, value: curr.value)
       of ltVar: LightExpr(kind: leVar, var_name: curr.var_name)
       of ltFunc:
-        if parser.tokens.Current.kind != ltParamStart:
+        if parser.tokens.Current.kind != ltLeftParen:
           raise newException(ValueError, "Expected parameter list after function call")
 
         parser.tokens.Step()
-        let params = Parse_block(parser.tokens, ltParamDelim, ltParamEnd)
+        let params = Parse_block(parser.tokens, ltParamDelim, ltRightParen)
 
         LightExpr(
           kind: leFuncCall,
@@ -69,6 +69,11 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
       right: next,
       operation: curr.operation
     )
+
+  elif curr.kind == ltLeftParen:
+    let next = parser.NextExpr(LightExpr(kind: leNull), {ltRightParen})
+    parser.tokens.Step()
+    return parser.NextExpr(next, stop_at)
   
   elif curr.kind == ltEq:
     if prev.kind != leVar:

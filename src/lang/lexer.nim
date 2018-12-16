@@ -20,9 +20,9 @@ iterator Generate_tokens*(source: string): LightToken =
           if ch == '}':
             yield LightToken(kind: ltBlockEnd)
           if ch == '(':
-            yield LightToken(kind: ltParamStart)
+            yield LightToken(kind: ltLeftParen)
           if ch == ')':
-            yield LightToken(kind: ltParamEnd)
+            yield LightToken(kind: ltRightParen)
           if ch == ';':
             yield LightToken(kind: ltExprDelim)
         continue

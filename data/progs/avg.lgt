@@ -1,6 +1,6 @@
 
 #FLOOD_WITH_RANDOM {
-	$m6 = -1 + 256 * 256 * 256
+	$m6 = (256 * 256 * 256) - 1
 	$m7 = !GET_WIDTH()
 	$m8 = !GET_HEIGHT()
 

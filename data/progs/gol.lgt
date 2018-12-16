@@ -50,9 +50,7 @@ while $y < !BOARD_HEIGHT() {
 
 	$m2 = !get_a() == !CELL_ALIVE()
 	if $m2 {
-		$m3 = $m1 < 2
-		$m3 = $m3 + $m1 > 3
-		if $m3 {
+		if ($m1 < 2) + ($m1 > 3) {
 			!set_r(!CELL_DEAD())
 		}
 	} else {
@@ -83,7 +81,7 @@ while 1 {
 
 	$m7 = $m7 - 1
 	if $m7 <= 0 {
-		$m7 = 30
+		$m7 = 1
 
 		$y = 0
 		while $y < !BOARD_HEIGHT() {

@@ -1,5 +1,5 @@
 #push_pos {
-	$m1 = $x + $y * 256 * 256
+	$m1 = ($y * 256 * 256) + $x
 
 	!step_to_linear(0)
 	!step_to_linear(!get_col() + 1)
@@ -9,8 +9,8 @@
 	!step_to_linear(0)
 	!set_col(!get_col() + 1)
 
-	$x = $m1 % 256 * 256
-	$y = $m1 / 256 * 256
+	$x = $m1 % (256 * 256)
+	$y = $m1 / (256 * 256)
 }
 
 #pop_pos {
@@ -21,8 +21,8 @@
 
 	!step_to_linear(0)
 	!set_col(!get_col() - 1)
-	$x = $m1 % 256 * 256
-	$y = $m1 / 256 * 256
+	$x = $m1 % (256 * 256)
+	$y = $m1 / (256 * 256)
 }
 
 #get_stack_height {
@@ -67,15 +67,13 @@ while !get_stack_height() > 0 {
 	$y = $y - 2
 
 	if $m1 {
-		$m8 = 100
+		$m8 = 1
 		while $m8 {
 			//Random direction
 			$m7 = !random(4)
-			$m8 = $m8 - 1
 
 			// dx and dy
-			$m5 = 0
-			$m6 = 0
+			$m5 = $m6 = 0
 
 			if $m7 == 0 {
 				$m6 = -2
@@ -117,5 +115,3 @@ while !get_stack_height() > 0 {
 	}
 	!render()
 }
-
-!say(8008135)

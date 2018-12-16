@@ -5,11 +5,11 @@ type
     ltNull,
     ltVar, ltNum,
     ltExprDelim,
+    ltLeftParen, ltRightParen,
     ltIf, ltElse, ltWhile,
     ltBlockStart, ltBlockEnd,
     ltBreak,
     ltFunc,
-    ltParamStart, ltParamEnd,
     ltParamDelim,
     ltFuncDef,
     ltOp, ltEq
@@ -48,14 +48,14 @@ proc `$`*(token: LightToken): string =
     of ltEq: "EqualsToken"
     of ltNum: "NumberToken[" & $token.value & "]"
     of ltExprDelim: "ExprDelimToken"
+    of ltLeftParen: "LeftParenToken"
+    of ltRightParen: "RightParenToken"
     of ltIf: "IfToken"
     of ltWhile: "WhileToken"
     of ltBreak: "BreakToken"
     of ltBlockStart: "BlockStartToken"
     of ltBlockEnd: "BlockEndToken"
     of ltFunc: "FunctionToken[" & token.func_name & "]"
-    of ltParamStart: "ParamStartToken"
-    of ltParamEnd: "ParamEndToken"
     of ltParamDelim: "ParamDelimToken"
     of ltFuncDef: "FuncDefToken[" & token.func_name & "]"
     of ltOp: "OpeartionToken[" & $token.operation & "]"
