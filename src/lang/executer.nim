@@ -2,6 +2,7 @@ import os
 import tables
 import ./types/types
 import ./types/ast
+import ./utils
 import ./program
 import ../board/board
 import ../gfx/window
@@ -19,6 +20,7 @@ type
     builtin_functions: ExecFuncs
     defined_functions: TableRef[string, seq[LightExpr]]
     running: bool
+    break_flag: bool
 
 proc MakeEmptyWorker(): LightWorker =
   LightWorker()
@@ -30,7 +32,8 @@ proc MakeExecutionContext*(funcs: ExecFuncs): ExecutionContext =
     worker: worker,
     builtin_functions: funcs,
     defined_functions: defined_functions,
-    running: false
+    running: false,
+    break_flag: false,
   )
 
 proc ExecuteLines(ec: ExecutionContext, lines: seq[LightExpr]): LightInt
@@ -79,30 +82,7 @@ proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
       left = EvalExpr(ec, exp.left)
       right = EvalExpr(ec, exp.right)
 
-    case exp.operation:
-    of loAdd: left + right
-    of loSub: left - right
-    of loMul: left * right
-    of loDiv: left div right
-    of loMod: left mod right
-    of loGt:
-      if left > right: 1
-      else: 0
-    of loGte:
-      if left >= right: 1
-      else: 0
-    of loLt:
-      if left < right: 1
-      else: 0
-    of loLte:
-      if left <= right: 1
-      else: 0
-    of loEq:
-      if left == right: 1
-      else: 0
-    of loNeq:
-      if left != right: 1
-      else: 0
+    EvalOperation(exp.operation, left, right)
 
   of leAssign:
     let value = EvalExpr(ec, exp.expression)
@@ -116,12 +96,20 @@ proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
       ExecuteLines(ec, exp.else_body)
 
   of leWhile:
+    var last: LightInt = 0
     while ec.running:
       let cond = EvalExpr(ec, exp.condition)
       if cond == 0:
         break
+      if ec.break_flag:
+        ec.break_flag = false
+        break
 
-      discard ExecuteLines(ec, exp.body)
+      last = ExecuteLines(ec, exp.body)
+    last
+
+  of leBreak:
+    ec.break_flag = true
     0
 
   of leFuncCall:
@@ -153,8 +141,12 @@ proc ExecuteLines(ec: ExecutionContext, lines: seq[LightExpr]): LightInt =
 
   var last: LightInt = 0
   for line in lines:
-    last = EvalExpr(ec, line)
-    if not ec.running: break
+    let next = EvalExpr(ec, line)
+    if ec.break_flag:
+      break
+    last = next
+    if not ec.running:
+      break
   last
 
 proc ExecuteProgram*(ec: ExecutionContext, prog: LightProgram): LightInt =

@@ -2,21 +2,13 @@
 import ./types/types
 import ./types/tokens
 import ./types/ast
+import ./utils
 
 import ../utils/iter
 
-type
-  LightParser = object
-    tokens: Iter[LightToken]
-  
-func CreateParser(tokens: Iter[LightToken]): LightParser =
-  LightParser(tokens: tokens)
-func CreateParser(tokens: seq[LightToken]): LightParser =
-  CreateParser(CreateIter[LightToken](tokens, LightToken(kind: ltNull)))
+func NextExpr(tokens: Iter[LightToken], prev: LightExpr, stop_at: set[LightTokenType]): LightExpr
 
-func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]): LightExpr
-
-func Parse_block(tokens: Iter[LightToken], sep, endd: LightTokenType): seq[LightExpr] =
+func ParseBlock(tokens: Iter[LightToken], sep, endd: LightTokenType): seq[LightExpr] =
   result = @[]
 
   var last = tokens.Current
@@ -24,21 +16,20 @@ func Parse_block(tokens: Iter[LightToken], sep, endd: LightTokenType): seq[Light
     tokens.Step()
     return
 
-  var parser = CreateParser(tokens)
   while last.kind != endd:
-    let p = parser.NextExpr(LightExpr(kind: leNull), {sep, endd})
+    let p = tokens.NextExpr(LightExpr(kind: leNull), {sep, endd})
     if p.kind != leNull:
       result.add(p)
-    last = parser.tokens.Current
-    parser.tokens.Step()
+    last = tokens.Current
+    tokens.Step()
   
-func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]): LightExpr =
-  let curr = parser.tokens.Current
+func NextExpr(tokens: Iter[LightToken], prev: LightExpr, stop_at: set[LightTokenType]): LightExpr =
+  let curr = tokens.Current
 
   if curr.kind in stop_at:
     return prev
 
-  parser.tokens.Step()
+  tokens.Step()
 
   if curr.kind in {ltNum, ltVar, ltFunc} and prev.kind == leNull:
     let prevExpr =
@@ -46,11 +37,11 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
       of ltNum: LightExpr(kind: leNumLit, value: curr.value)
       of ltVar: LightExpr(kind: leVar, var_name: curr.var_name)
       of ltFunc:
-        if parser.tokens.Current.kind != ltLeftParen:
+        if tokens.Current.kind != ltLeftParen:
           raise newException(ValueError, "Expected parameter list after function call")
 
-        parser.tokens.Step()
-        let params = Parse_block(parser.tokens, ltParamDelim, ltRightParen)
+        tokens.Step()
+        let params = ParseBlock(tokens, ltParamDelim, ltRightParen)
 
         LightExpr(
           kind: leFuncCall,
@@ -59,28 +50,36 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
         )
       else: LightExpr(kind: leNull)
 
-    return parser.NextExpr(prevExpr, stop_at)
+    return tokens.NextExpr(prevExpr, stop_at)
 
   elif curr.kind == ltOp:
-    let next = parser.NextExpr(LightExpr(kind: leNull), stop_at)
-    return LightExpr(
-      kind: leOp,
-      left: prev,
-      right: next,
-      operation: curr.operation
-    )
+    let next = tokens.NextExpr(LightExpr(kind: leNull), stop_at)
+
+    # Reduce if possible
+    if prev.kind == leNumLit and next.kind == leNumLit:
+      return LightExpr(
+        kind: leNumLit,
+        value: EvalOperation(curr.operation, prev.value, next.value)
+      )
+    else:
+      return LightExpr(
+        kind: leOp,
+        left: prev,
+        right: next,
+        operation: curr.operation
+      )
 
   elif curr.kind == ltLeftParen:
-    let next = parser.NextExpr(LightExpr(kind: leNull), {ltRightParen})
-    parser.tokens.Step()
-    return parser.NextExpr(next, stop_at)
+    let next = tokens.NextExpr(LightExpr(kind: leNull), {ltRightParen})
+    tokens.Step()
+    return tokens.NextExpr(next, stop_at)
   
   elif curr.kind == ltEq:
     if prev.kind != leVar:
       raise newException(ValueError, "Expected variable on the left of assignment operator")
 
     else:
-      let next = parser.NextExpr(LightExpr(kind: leNull), stop_at)
+      let next = tokens.NextExpr(LightExpr(kind: leNull), stop_at)
 
       return LightExpr(
         kind: leAssign,
@@ -89,15 +88,15 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
       )
 
   elif curr.kind == ltIf:
-    let condition = parser.NextExpr(LightExpr(kind: leNull), {ltBlockStart})
-    parser.tokens.Step()
-    let body = Parse_block(parser.tokens, ltExprDelim, ltBlockEnd)
+    let condition = tokens.NextExpr(LightExpr(kind: leNull), {ltBlockStart})
+    tokens.Step()
+    let body = ParseBlock(tokens, ltExprDelim, ltBlockEnd)
 
     let else_body =
-      if parser.tokens.Current.kind == ltElse:
-        parser.tokens.Step()
-        parser.tokens.Step()
-        Parse_block(parser.tokens, ltExprDelim, ltBlockEnd)
+      if tokens.Current.kind == ltElse:
+        tokens.Step()
+        tokens.Step()
+        ParseBlock(tokens, ltExprDelim, ltBlockEnd)
       else:
         @[]
 
@@ -110,9 +109,9 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
     )
 
   elif curr.kind == ltWhile:
-    let condition = parser.NextExpr(LightExpr(kind: leNull), {ltBlockStart})
-    parser.tokens.Step()
-    let body = Parse_block(parser.tokens, ltExprDelim, ltBlockEnd)
+    let condition = tokens.NextExpr(LightExpr(kind: leNull), {ltBlockStart})
+    tokens.Step()
+    let body = ParseBlock(tokens, ltExprDelim, ltBlockEnd)
 
     return LightExpr(
       kind: leWhile,
@@ -126,11 +125,11 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
     )
   
   elif curr.kind == ltFuncDef:
-    if parser.tokens.Current.kind != ltBlockStart:
+    if tokens.Current.kind != ltBlockStart:
       raise newException(ValueError, "Expected block start after function definition")
     
-    parser.tokens.Step()
-    let body = Parse_block(parser.tokens, ltExprDelim, ltBlockEnd)
+    tokens.Step()
+    let body = ParseBlock(tokens, ltExprDelim, ltBlockEnd)
     
     return LightExpr(
       kind: leFuncDef,
@@ -143,10 +142,10 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
       kind: leNull
     )
   
-iterator Parse_tokens*(tokens: seq[LightToken]): LightExpr =
-  var parser = CreateParser(tokens)
-  while not parser.tokens.ReachedEnd:
-    let next = parser.NextExpr(LightExpr(kind: leNull), {ltExprDelim})
+iterator Parse_tokens*(tkns: seq[LightToken]): LightExpr =
+  var tokens = CreateIter[LightToken](tkns, LightToken(kind: ltNull))
+  while not tokens.ReachedEnd:
+    let next = tokens.NextExpr(LightExpr(kind: leNull), {ltExprDelim})
     if next.kind != leNull:
       yield next
-    parser.tokens.Step()
+    tokens.Step()

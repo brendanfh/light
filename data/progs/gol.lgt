@@ -1,6 +1,6 @@
 //Assumes 128 by 128 board
-#BOARD_WIDTH { 128 }
-#BOARD_HEIGHT { 128 }
+#BOARD_WIDTH { !GET_WIDTH() }
+#BOARD_HEIGHT { !GET_HEIGHT() }
 
 #CELL_ALIVE { 255 }
 #CELL_DEAD { 0 }

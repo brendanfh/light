@@ -67,8 +67,7 @@ while !get_stack_height() > 0 {
 	$y = $y - 2
 
 	if $m1 {
-		$m8 = 1
-		while $m8 {
+		while 1 {
 			//Random direction
 			$m7 = !random(4)
 
@@ -103,7 +102,7 @@ while !get_stack_height() > 0 {
 					$x = $x + $m5
 					$y = $y + $m6
 					!push_pos()
-					$m8 = 0
+					break
 				} else {
 					!pop_pos()
 					!pop_pos()
