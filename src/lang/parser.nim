@@ -40,11 +40,23 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
 
   parser.tokens.Step()
 
-  if curr.kind in {ltNum, ltVar} and prev.kind == leNull:
+  if curr.kind in {ltNum, ltVar, ltFunc} and prev.kind == leNull:
     let prevExpr =
       case curr.kind:
       of ltNum: LightExpr(kind: leNumLit, value: curr.value)
       of ltVar: LightExpr(kind: leVar, var_name: curr.var_name)
+      of ltFunc:
+        if parser.tokens.Current.kind != ltParamStart:
+          raise newException(ValueError, "Expected parameter list after function call")
+
+        parser.tokens.Step()
+        let params = Parse_block(parser.tokens, ltParamDelim, ltParamEnd)
+
+        LightExpr(
+          kind: leFuncCall,
+          func_name: curr.func_name,
+          params: params
+        )
       else: LightExpr(kind: leNull)
 
     return parser.NextExpr(prevExpr, stop_at)
@@ -71,32 +83,25 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
         expression: next
       )
 
-  elif curr.kind == ltLabel:
-    return LightExpr(
-      kind: leLabel,
-      label: curr.label_name
-    )
-  
-  elif curr.kind == ltGoto:
-    let next = parser.tokens.Current
-    if next.kind != ltLabel:
-      raise newException(ValueError, "Expected label after goto")
-
-    else:
-      return LightExpr(
-        kind: leGoto,
-        label: next.label_name
-      )
-
   elif curr.kind == ltIf:
     let condition = parser.NextExpr(LightExpr(kind: leNull), {ltBlockStart})
     parser.tokens.Step()
     let body = Parse_block(parser.tokens, ltExprDelim, ltBlockEnd)
 
+    let else_body =
+      if parser.tokens.Current.kind == ltElse:
+        parser.tokens.Step()
+        parser.tokens.Step()
+        Parse_block(parser.tokens, ltExprDelim, ltBlockEnd)
+      else:
+        @[]
+
+
     return LightExpr(
       kind: leIf,
       condition: condition,
-      body: body
+      body: body,
+      else_body: else_body
     )
 
   elif curr.kind == ltWhile:
@@ -113,19 +118,6 @@ func NextExpr(parser: LightParser, prev: LightExpr, stop_at: set[LightTokenType]
   elif curr.kind == ltBreak:
     return LightExpr(
       kind: leBreak
-    )
-
-  elif curr.kind == ltFunc:
-    if parser.tokens.Current.kind != ltParamStart:
-      raise newException(ValueError, "Expected parameter list after function call")
-
-    parser.tokens.Step()
-    let params = Parse_block(parser.tokens, ltParamDelim, ltParamEnd)
-
-    return LightExpr(
-      kind: leFuncCall,
-      func_name: curr.func_name,
-      params: params
     )
   
   elif curr.kind == ltFuncDef:

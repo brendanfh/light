@@ -12,7 +12,7 @@ type
     var_5*, var_6*, var_7*, var_8*: LightInt
     pos_x*, pos_y*: LightInt
 
-  ExecFuncs = TableRef[string, proc(ec: ExecutionContext, args: openarray[LightInt]): LightInt]
+  ExecFuncs* = TableRef[string, proc(ec: ExecutionContext, args: openarray[LightInt]): LightInt]
 
   ExecutionContext* = ref object
     worker*: LightWorker
@@ -113,7 +113,7 @@ proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
     if cond != 0:
       ExecuteLines(ec, exp.body)
     else:
-      0
+      ExecuteLines(ec, exp.else_body)
 
   of leWhile:
     while ec.running:
@@ -135,15 +135,15 @@ proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
       ExecuteLines(ec, ec.defined_functions[exp.func_name])
 
     else:
-      raise newException(ValueError, "Cannot call undefined function")
+      raise newException(ValueError, "Cannot call undefined function: " & exp.func_name)
 
   of leFuncDef:
     if ec.defined_functions.hasKey(exp.def_func_name):
-      raise newException(ValueError, "Cannot redefine function")
+      raise newException(ValueError, "Cannot redefine function: " & exp.def_func_name)
 
     else:
       ec.defined_functions[exp.def_func_name] = exp.func_body
-      1
+      0
   else:
     0
 
@@ -151,7 +151,7 @@ proc ExecuteLines(ec: ExecutionContext, lines: seq[LightExpr]): LightInt =
   if not ec.running:
     return 0
 
-  var last: LightInt
+  var last: LightInt = 0
   for line in lines:
     last = EvalExpr(ec, line)
     if not ec.running: break

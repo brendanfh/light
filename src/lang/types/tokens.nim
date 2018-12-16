@@ -5,8 +5,7 @@ type
     ltNull,
     ltVar, ltNum,
     ltExprDelim,
-    ltLabel, ltGoto,
-    ltIf, ltWhile,
+    ltIf, ltElse, ltWhile,
     ltBlockStart, ltBlockEnd,
     ltBreak,
     ltFunc,
@@ -21,8 +20,6 @@ type
       var_name*: LightVariable
     of ltNum:
       value*: LightInt
-    of ltLabel:
-      label_name*: string
     of ltFunc, ltFuncDef:
       func_name*: string
     of ltOp:
@@ -51,8 +48,6 @@ proc `$`*(token: LightToken): string =
     of ltEq: "EqualsToken"
     of ltNum: "NumberToken[" & $token.value & "]"
     of ltExprDelim: "ExprDelimToken"
-    of ltLabel: "LabelToken[" & token.label_name & "]"
-    of ltGoto: "GotoToken"
     of ltIf: "IfToken"
     of ltWhile: "WhileToken"
     of ltBreak: "BreakToken"

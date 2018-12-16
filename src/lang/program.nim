@@ -1,6 +1,7 @@
 import sequtils
 import tables
 import ./types/ast
+import ./types/tokens
 import ./lexer
 import ./parser
 

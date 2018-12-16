@@ -3,8 +3,8 @@ import ../gfx/glutils
 
 type
   LightBoard* = ref object
-    width: int
-    height: int
+    width*: int
+    height*: int
     data: ref array[1024 * 1024, GLuint]
     colors: ref array[1024 * 1024 * 4, GLfloat]
 

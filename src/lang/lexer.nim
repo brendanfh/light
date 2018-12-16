@@ -10,16 +10,21 @@ iterator Generate_tokens*(source: string): LightToken =
     if line.strip.startsWith("//"):
       continue
 
-    for token, is_sep in strutils.tokenize(line, {' ', ';', '\t', ',', '(', ')'}):
+    for token, is_sep in strutils.tokenize(line, {' ', ';', '\t', ',', '(', ')', '{', '}'}):
       if is_sep:
-        if token.contains({','}):
-          yield LightToken(kind: ltParamDelim)
-        if token.contains({'('}):
-          yield LightToken(kind: ltParamStart)
-        if token.contains({')'}):
-          yield LightToken(kind: ltParamEnd)
-        if token.contains({';'}):
-          yield LightToken(kind: ltExprDelim)
+        for ch in token.items:
+          if ch == ',':
+            yield LightToken(kind: ltParamDelim)
+          if ch == '{':
+            yield LightToken(kind: ltBlockStart)
+          if ch == '}':
+            yield LightToken(kind: ltBlockEnd)
+          if ch == '(':
+            yield LightToken(kind: ltParamStart)
+          if ch == ')':
+            yield LightToken(kind: ltParamEnd)
+          if ch == ';':
+            yield LightToken(kind: ltExprDelim)
         continue
 
       if token.startsWith('$'):
@@ -29,16 +34,16 @@ iterator Generate_tokens*(source: string): LightToken =
         if varString == "":
           raise newException(IOError, "Expected variable name")
         else:
-          if varString == "mem_1": varName = var1
-          elif varString == "mem_2": varName = var2
-          elif varString == "mem_3": varName = var3
-          elif varString == "mem_4": varName = var4
-          elif varString == "mem_5": varName = var5
-          elif varString == "mem_6": varName = var6
-          elif varString == "mem_7": varName = var7
-          elif varString == "mem_8": varName = var8
-          elif varString == "pos_x": varName = varX
-          elif varString == "pos_y": varName = varY
+          if varString == "m1": varName = var1
+          elif varString == "m2": varName = var2
+          elif varString == "m3": varName = var3
+          elif varString == "m4": varName = var4
+          elif varString == "m5": varName = var5
+          elif varString == "m6": varName = var6
+          elif varString == "m7": varName = var7
+          elif varString == "m8": varName = var8
+          elif varString == "x": varName = varX
+          elif varString == "y": varName = varY
           else:
             raise newException(IOError, "Invalid variable name.")
 
@@ -55,6 +60,12 @@ iterator Generate_tokens*(source: string): LightToken =
       elif token == "=":
         yield LightToken(kind: ltEq)
 
+      elif token.startsWith("-") and token != "-":
+        var value: int
+        discard parseutils.parseInt(token, value)
+
+        yield LightToken(kind: ltNum, value: value.LightInt)
+
       elif token.isDigit:
         var value: int
         discard parseutils.parseInt(token, value)
@@ -63,20 +74,16 @@ iterator Generate_tokens*(source: string): LightToken =
 
       elif token.toLowerAscii == "if":
         yield LightToken(kind: ltIf)
+      elif token.toLowerAscii == "else":
+        yield LightToken(kind: ltElse)
       elif token.toLowerAscii == "while":
         yield LightToken(kind: ltWhile)
       elif token.toLowerAscii == "break":
         yield LightToken(kind: ltBreak)
-      elif token.toLowerAscii == "then" or token.toLowerAscii == "do" or token == "{":
+      elif token.toLowerAscii == "then" or token.toLowerAscii == "do":
         yield LightToken(kind: ltBlockStart)
-      elif token.toLowerAscii == "end" or token == "}":
+      elif token.toLowerAscii == "end":
         yield LightToken(kind: ltBlockEnd)
-
-      elif token.toLowerAscii == "goto":
-        yield LightToken(kind: ltGoto)
-      elif token.startsWith(':'):
-        let labelName = token[1 .. ^1]
-        yield LightToken(kind: ltLabel, label_name: labelName)
 
       else:
         case token:

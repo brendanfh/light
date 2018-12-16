@@ -1,43 +1,43 @@
-$pos_x = 0
-$pos_y = 10
-$mem_8 = 1
+$x = 0
+$y = 10
+$m8 = 1
 
 #move_diag {
-	$pos_x = $pos_x + $mem_8
-	$pos_y = $pos_y + $mem_8
+	$x = $x + $m8
+	$y = $y + $m8
 }
 
 #swap_xy {
-	$mem_1 = $pos_x
-	$pos_x = $pos_y
-	$pos_y = $mem_1
+	$m1 = $x
+	$x = $y
+	$y = $m1
 }
 
-$mem_3 = 100
-while $pos_x <= 255 {
-	$mem_3 = $mem_3 + 4
-	if $mem_3 >= 256 {
-		$mem_3 = $mem_3 - 156
+$m3 = 100
+while $x <= !GET_WIDTH() {
+	$m3 = $m3 + 4
+	if $m3 >= 256 {
+		$m3 = $m3 - 156
 	}
 
-	!set_col($pos_x, $pos_y, $mem_3)
+	!set_col($m3)
 	!move_diag()
 	!swap_xy()
 	!render()
 }
 
-$pos_x = 240
-$pos_y = 255
-$mem_8 = 0 - 1
+$x = !GET_WIDTH() - 15
+$y = !GET_HEIGHT() - 1
+$m8 = 0 - 1
 
-while $pos_x >= 0 {
-	!set_col($pos_x, $pos_y, 255)
+while $x >= 0 {
+	!set_col(255)
 	!move_diag()
 	!render()
 }
 
-!say($pos_x)
-$mem_2 = if $pos_x < 0 {
+!say($x)
+$m2 = if $x < 0 {
 	1000
 }
-!say($mem_2)
+!say($m2)
