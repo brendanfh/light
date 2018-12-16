@@ -127,7 +127,7 @@ Usage:
   light ast <file>
   light (-h | --help)
   light --version
-
+  
 Options:
   -h --help           Show this screen.
   --width=<int>       Width of board [default: 64].
