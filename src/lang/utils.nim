@@ -7,6 +7,9 @@ proc EvalOperation*(operation: LightOperation, left, right: LightInt): LightInt 
     of loMul: left * right
     of loDiv: left div right
     of loMod: left mod right
+    of loBitAnd: left and right
+    of loBitOr: left or right
+    of loBitXor: left xor right
     of loGt:
       if left > right: 1
       else: 0

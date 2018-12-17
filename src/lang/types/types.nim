@@ -1,11 +1,30 @@
 type
   LightVariable* = enum
-    var1 = 0, var2 = 1, var3 = 2, var4 = 3,
-    var5 = 4, var6 = 5, var7 = 6, var8 = 7,
-    varX = 8, varY = 9
+    var_m1, var_m2, var_m3, var_m4,
+    var_m5, var_m6, var_m7, var_m8,
+    var_p1, var_p2, var_p3, var_p4,
+    var_x,  var_y
     
   LightOperation* = enum
     loAdd, loSub, loMul, loDiv, loMod,
+    loBitAnd, loBitOr, loBitXor,
     loGt, loGte, loLt, loLte, loEq, loNeq
 
   LightInt* = int32
+
+func `$`*(variable: LightVariable): string =
+  case variable:
+  of var_m1: "MEM_1"
+  of var_m2: "MEM_2"
+  of var_m3: "MEM_3"
+  of var_m4: "MEM_4"
+  of var_m5: "MEM_5"
+  of var_m6: "MEM_6"
+  of var_m7: "MEM_7"
+  of var_m8: "MEM_8"
+  of var_p1: "PRM_1"
+  of var_p2: "PRM_2"
+  of var_p3: "PRM_3"
+  of var_p4: "PRM_4"
+  of var_x: "POS_X"
+  of var_y: "POS_Y"

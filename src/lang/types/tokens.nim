@@ -27,19 +27,6 @@ type
     else:
       discard
 
-func `$`*(variable: LightVariable): string =
-  case variable:
-  of var1: "MEM_1"
-  of var2: "MEM_2"
-  of var3: "MEM_3"
-  of var4: "MEM_4"
-  of var5: "MEM_5"
-  of var6: "MEM_6"
-  of var7: "MEM_7"
-  of var8: "MEM_8"
-  of varX: "POS_X"
-  of varY: "POS_Y"
-
 proc `$`*(token: LightToken): string =
   return
     case token.kind:

@@ -34,16 +34,20 @@ iterator Generate_tokens*(source: string): LightToken =
         if varString == "":
           raise newException(IOError, "Expected variable name")
         else:
-          if varString == "m1": varName = var1
-          elif varString == "m2": varName = var2
-          elif varString == "m3": varName = var3
-          elif varString == "m4": varName = var4
-          elif varString == "m5": varName = var5
-          elif varString == "m6": varName = var6
-          elif varString == "m7": varName = var7
-          elif varString == "m8": varName = var8
-          elif varString == "x": varName = varX
-          elif varString == "y": varName = varY
+          if   varString == "m1": varName = var_m1
+          elif varString == "m2": varName = var_m2
+          elif varString == "m3": varName = var_m3
+          elif varString == "m4": varName = var_m4
+          elif varString == "m5": varName = var_m5
+          elif varString == "m6": varName = var_m6
+          elif varString == "m7": varName = var_m7
+          elif varString == "m8": varName = var_m8
+          elif varString == "p1": varName = var_p1
+          elif varString == "p2": varName = var_p2
+          elif varString == "p3": varName = var_p3
+          elif varString == "p4": varName = var_p4
+          elif varString == "x": varName = var_x
+          elif varString == "y": varName = var_y
           else:
             raise newException(IOError, "Invalid variable name.")
 
@@ -53,20 +57,14 @@ iterator Generate_tokens*(source: string): LightToken =
         let funcName = token[1..^1].toLowerAscii
         yield LightToken(kind: ltFunc, func_name: funcName)
 
-      elif token.startsWith('#'):
+      elif token.startsWith('@'):
         let funcName = token[1..^1].toLowerAscii
         yield LightToken(kind: ltFuncDef, func_name: funcName)
 
       elif token == "=":
         yield LightToken(kind: ltEq)
 
-      elif token.startsWith("-") and token != "-":
-        var value: int
-        discard parseutils.parseInt(token, value)
-
-        yield LightToken(kind: ltNum, value: value.LightInt)
-
-      elif token.isDigit:
+      elif (token.startsWith("-") and token != "-") or token.isDigit:
         var value: int
         discard parseutils.parseInt(token, value)
 
@@ -97,6 +95,12 @@ iterator Generate_tokens*(source: string): LightToken =
           yield LightToken(kind: ltOp, operation: loDiv)
         of "%":
           yield LightToken(kind: ltOp, operation: loMod)
+        of "&":
+          yield LightToken(kind: ltOp, operation: loBitAnd)
+        of "|":
+          yield LightToken(kind: ltOp, operation: loBitOr)
+        of "^":
+          yield LightToken(kind: ltOp, operation: loBitXor)
         of "<":
           yield LightToken(kind: ltOp, operation: loLt)
         of "<=":

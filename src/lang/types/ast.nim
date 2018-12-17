@@ -38,6 +38,7 @@ type
       params*: seq[LightExpr]
     of leFuncDef:
       def_func_name*: string
+      param_vars*: seq[LightVariable]
       func_body*: seq[LightExpr]
     else: 
       discard
@@ -60,7 +61,7 @@ func printExpr(exp: LightExpr, ind: int): string =
       of leWhile: "while [" & printExpr(exp.condition, 0) & "] {\n" & multiline(exp.body, ind + 1) & "\n" & ts & "}"
       of leBreak: "break"
       of leFuncCall: "funcCall[" & exp.func_name & ", " & $exp.params & "]"
-      of leFuncDef: "funcDef[" & exp.def_func_name & "] {\n" & multiline(exp.func_body, ind + 1) & "\n" & ts & "}"
+      of leFuncDef: "funcDef[" & exp.def_func_name & "] (" & $exp.param_vars & ") {\n" & multiline(exp.func_body, ind + 1) & "\n" & ts & "}"
       of leNull: "NullExpr[]"
       else: "UNDEFINED[]"
   )

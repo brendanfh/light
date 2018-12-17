@@ -1,5 +1,5 @@
 
-#FLOOD_WITH_RANDOM {
+@FLOOD_WITH_RANDOM() {
 	$m6 = (256 * 256 * 256) - 1
 	$m7 = !GET_WIDTH()
 	$m8 = !GET_HEIGHT()
@@ -16,7 +16,7 @@
 }
 
 //change 1, 2, 3 4, 7, 8
-#TAKE_AVERAGE {
+@TAKE_AVERAGE() {
 	//Red, Green and Blue Sum
 	$m1 = 0
 	$m2 = 0

@@ -125,15 +125,34 @@ func NextExpr(tokens: Iter[LightToken], prev: LightExpr, stop_at: set[LightToken
     )
   
   elif curr.kind == ltFuncDef:
+    if tokens.Current.kind != ltLeftParen:
+      raise newException(ValueError, "Expected parameter list before function definition")
+
+    tokens.Step()
+    let params = ParseBlock(tokens, ltParamDelim, ltRightParen)
+    var param_list = newSeq[LightVariable]()
+    for param in params:
+      if param.kind != leVar:
+        raise newException(ValueError, "Only parameter variables in function defintion parameter list")
+      if (param.variable < var_p1) or (param.variable > var_p4):
+        raise newException(ValueError, "Only parameter variables in function defintion parameter list")
+      else:
+        param_list.add(param.variable)
+
+    # Allows for next line function body
+    if tokens.Current.kind == ltExprDelim:
+      tokens.Step()
+
     if tokens.Current.kind != ltBlockStart:
-      raise newException(ValueError, "Expected block start after function definition")
-    
+      raise newException(ValueError, "Expected function body")
+
     tokens.Step()
     let body = ParseBlock(tokens, ltExprDelim, ltBlockEnd)
     
     return LightExpr(
       kind: leFuncDef,
       def_func_name: curr.func_name,
+      param_vars: param_list,
       func_body: body
     )
 
