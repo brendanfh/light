@@ -5,20 +5,21 @@ import ./tokens
 
 type
   LightExprType* = enum
-    leNull     = 0,
-    leVar      = 1,
-    leNumLit   = 2,
-    leOp       = 3,
-    leAssign   = 4,
-    leIf       = 5,
-    leWhile    = 6,
-    leBreak    = 7,
-    leFuncCall = 8,
-    leFuncDef  = 9,
+    leNull,
+    leVar,
+    leVarDef,
+    leNumLit,
+    leOp,
+    leAssign,
+    leIf,
+    leWhile,
+    leBreak,
+    leFuncCall,
+    leFuncDef,
 
   LightExpr* = ref object
     case kind*: LightExprType
-    of leVar:
+    of leVar, leVarDef:
       var_name*: LightVariable
     of leNumLit:
       value*: LightInt
@@ -53,6 +54,7 @@ func printExpr(exp: LightExpr, ind: int): string =
   let ts = strutils.repeat("    ", ind)
   ts & (
     case exp.kind:
+      of leVarDef: "varDef[" & $exp.var_name & "]"
       of leVar: "var[" & $exp.var_name & "]"
       of leNumLit: "num[" & $exp.value & "]"
       of leOp: "op[" & $exp.operation & ", " & printExpr(exp.left, 0) & ", " & printExpr(exp.right, 0) & "]"

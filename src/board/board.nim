@@ -125,7 +125,7 @@ proc InitRendering*(board: LightBoard) =
 
   glGenBuffers(1, board.colorBufferObject.addr)
   glBindBuffer(GL_ARRAY_BUFFER, board.colorBufferObject)
-  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * board.width * board.height, board.colors.addr, GL_DYNAMIC_DRAW)
+  glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 4 * board.width * board.height, board.colors[].addr, GL_DYNAMIC_DRAW)
   glEnableVertexAttribArray(1)
   glVertexAttribDivisor(1, 1)
   glVertexAttribPointer(1, 4, cGL_FLOAT, GL_FALSE, 16.GLsizei, nil)

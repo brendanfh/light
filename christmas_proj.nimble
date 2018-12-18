@@ -13,7 +13,7 @@ bin           = @["christmas_proj"]
 requires "nim >= 0.19.0"
 requires "docopt >= 0.6.8"
 requires "opengl >= 1.2.0"
-requires "glfw"
+requires "nimrod-glfw"
 
 task run, "Run project":
   exec("nimble build -d:release")

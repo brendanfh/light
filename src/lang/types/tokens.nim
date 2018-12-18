@@ -3,7 +3,7 @@ import ./types
 type
   LightTokenType* = enum
     ltNull,
-    ltVar, ltNum,
+    ltVar, ltNum, ltVarDef,
     ltExprDelim,
     ltLeftParen, ltRightParen,
     ltIf, ltElse, ltWhile,
@@ -32,6 +32,7 @@ proc `$`*(token: LightToken): string =
     case token.kind:
     of ltNull: "NullToken"
     of ltVar: "VarToken[" & $token.var_name & "]"
+    of ltVarDef: "VarDefToken"
     of ltEq: "EqualsToken"
     of ltNum: "NumberToken[" & $token.value & "]"
     of ltExprDelim: "ExprDelimToken"

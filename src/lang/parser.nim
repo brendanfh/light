@@ -73,19 +73,36 @@ func NextExpr(tokens: Iter[LightToken], prev: LightExpr, stop_at: set[LightToken
     let next = tokens.NextExpr(LightExpr(kind: leNull), {ltRightParen})
     tokens.Step()
     return tokens.NextExpr(next, stop_at)
+
+  elif curr.kind == ltVarDef:
+    if tokens.Current.kind != ltVar:
+      raise newException(ValueError, "Expected variable name for variable declaration")
+
+    let name = tokens.Current.var_name
+    
+    return LightExpr(
+      kind: leVarDef,
+      var_name: name
+    )
   
   elif curr.kind == ltEq:
+    var variable: string = ""
     if prev.kind != leVar:
-      raise newException(ValueError, "Expected variable on the left of assignment operator")
+      if tokens.Previous(2).kind == ltVar:
+        variable = tokens.Previous(2).var_name
+      else:
+        raise newException(ValueError, "Expected variable on the left of assignment operator")
+      
+    let next = tokens.NextExpr(LightExpr(kind: leNull), stop_at)
 
-    else:
-      let next = tokens.NextExpr(LightExpr(kind: leNull), stop_at)
+    if variable == "":
+      variable = prev.var_name
 
-      return LightExpr(
-        kind: leAssign,
-        variable: prev.var_name,
-        expression: next
-      )
+    return LightExpr(
+      kind: leAssign,
+      variable: variable,
+      expression: next
+    )
 
   elif curr.kind == ltIf:
     let condition = tokens.NextExpr(LightExpr(kind: leNull), {ltBlockStart})
@@ -133,8 +150,6 @@ func NextExpr(tokens: Iter[LightToken], prev: LightExpr, stop_at: set[LightToken
     var param_list = newSeq[LightVariable]()
     for param in params:
       if param.kind != leVar:
-        raise newException(ValueError, "Only parameter variables in function defintion parameter list")
-      if (param.variable < var_p1) or (param.variable > var_p4):
         raise newException(ValueError, "Only parameter variables in function defintion parameter list")
       else:
         param_list.add(param.variable)

@@ -10,18 +10,9 @@ import ../gfx/window
 const MAX_STACK_HEIGHT = 400
 
 type
-  PContext = object
-    p_1, p_2, p_3, p_4: LightInt
-
-  PStack = ref object
-    stack: ref array[MAX_STACK_HEIGHT, PContext]
-    size: int
-
-  LightWorker = ref object
-    mem_1*, mem_2*, mem_3*, mem_4*: LightInt
-    mem_5*, mem_6*, mem_7*, mem_8*: LightInt
-    pos_x*, pos_y*: LightInt
-    param_stack: PStack
+  Environment* = ref object
+    values: TableRef[LightVariable, LightInt]
+    parent: Environment
 
   ExecFuncs* = TableRef[string, proc(ec: ExecutionContext, args: openarray[LightInt]): LightInt]
 
@@ -30,36 +21,24 @@ type
     body: seq[LightExpr]
 
   ExecutionContext* = ref object
-    worker*: LightWorker
+    vars: Environment
     builtin_functions: ExecFuncs
     defined_functions: TableRef[string, DefFuncs]
     running: bool
     break_flag: bool
 
-proc Top(pstack: PStack): var PContext =
-  pstack.stack[pstack.size - 1]
-
-proc Push(pstack: var PStack, ctx: PContext) =
-  pstack.stack[pstack.size] = ctx
-  pstack.size += 1
-
-proc Pop(pstack: var PStack): PContext =
-  pstack.size -= 1
-
-proc MakeEmptyWorker(): LightWorker =
-  let worker = LightWorker()
-  let param_ctx = new(array[MAX_STACK_HEIGHT, PContext])
-  worker.param_stack = PStack(
-    stack: param_ctx,
-    size: 1
+proc MakeEnvironment*(parent: Environment): Environment =
+  let values = newTable[LightVariable, LightInt]()
+  Environment(
+    values: values,
+    parent: parent
   )
-  worker
 
 proc MakeExecutionContext*(funcs: ExecFuncs): ExecutionContext =
-  let worker = MakeEmptyWorker()
+  let env = MakeEnvironment(nil)
   let defined_functions = newTable[string, DefFuncs]()
   ExecutionContext(
-    worker: worker,
+    vars: env,
     builtin_functions: funcs,
     defined_functions: defined_functions,
     running: false,
@@ -68,41 +47,31 @@ proc MakeExecutionContext*(funcs: ExecFuncs): ExecutionContext =
 
 proc ExecuteLines(ec: ExecutionContext, lines: seq[LightExpr]): LightInt
 
-func GetVar(worker: LightWorker, variable: LightVariable): LightInt =
-  case variable:
-  of var_m1: worker.mem_1
-  of var_m2: worker.mem_2
-  of var_m3: worker.mem_3
-  of var_m4: worker.mem_4
-  of var_m5: worker.mem_5
-  of var_m6: worker.mem_6
-  of var_m7: worker.mem_7
-  of var_m8: worker.mem_8
-  of var_x: worker.pos_x
-  of var_y: worker.pos_y
-  of var_p1: worker.param_stack.Top().p_1
-  of var_p2: worker.param_stack.Top().p_2
-  of var_p3: worker.param_stack.Top().p_3
-  of var_p4: worker.param_stack.Top().p_4
+func GetVar(env: Environment, variable: LightVariable): LightInt =
+  if hasKey(env.values, variable):
+    return env.values[variable]
+  
+  if env.parent == nil:
+    raise newException(ValueError, "Undefined variable: " & variable)
+  
+  return env.parent.GetVar(variable)
 
-func SetVar(worker: LightWorker, variable: LightVariable, value: LightInt): LightInt =
-  case variable:
-  of var_m1: worker.mem_1 = value
-  of var_m2: worker.mem_2 = value
-  of var_m3: worker.mem_3 = value
-  of var_m4: worker.mem_4 = value
-  of var_m5: worker.mem_5 = value
-  of var_m6: worker.mem_6 = value
-  of var_m7: worker.mem_7 = value
-  of var_m8: worker.mem_8 = value
-  of var_x: worker.pos_x = value
-  of var_y: worker.pos_y = value
-  of var_p1: worker.param_stack.Top().p_1 = value
-  of var_p2: worker.param_stack.Top().p_2 = value
-  of var_p3: worker.param_stack.Top().p_3 = value
-  of var_p4: worker.param_stack.Top().p_4 = value
+func SetVar(env: Environment, variable: LightVariable, value: LightInt): LightInt =
+  if hasKey(env.values, variable):
+    env.values[variable] = value
+    value
 
-  value
+  else:
+    if env.parent == nil:
+      raise newException(ValueError, "Undefined variable")
+
+    env.parent.SetVar(variable, value)
+
+func NewVar(env: Environment, variable: LightVariable) =
+  if hasKey(env.values, variable):
+    raise newException(ValueError, "Reclaration of variable: " & variable)
+  
+  env.values[variable] = 0
 
 proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
   case exp.kind:
@@ -110,7 +79,11 @@ proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
     0
 
   of leVar:
-    GetVar(ec.worker, exp.var_name)
+    GetVar(ec.vars, exp.var_name)
+
+  of leVarDef:
+    NewVar(ec.vars, exp.var_name)
+    0
 
   of leNumLit:
     exp.value
@@ -124,7 +97,7 @@ proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
 
   of leAssign:
     let value = EvalExpr(ec, exp.expression)
-    SetVar(ec.worker, exp.variable, value)
+    SetVar(ec.vars, exp.variable, value)
 
   of leIf:
     let cond = EvalExpr(ec, exp.condition)
@@ -162,23 +135,20 @@ proc EvalExpr(ec: ExecutionContext, exp: LightExpr): LightInt =
       for param in exp.params:
         args.add(EvalExpr(ec, param))
 
-      var ind: int = 0
-      var params: PContext
+      var new_env = MakeEnvironment(ec.vars)
 
+      var ind: int = 0
       for par in ec.defined_functions[exp.func_name].params:
         if ind >= args.len:
           raise newException(ValueError, "Too few parameters to function call")
-
-        if   par == var_p1: params.p_1 = args[ind]
-        elif par == var_p2: params.p_2 = args[ind]
-        elif par == var_p3: params.p_3 = args[ind]
-        elif par == var_p4: params.p_4 = args[ind]
-
+        
+        new_env.NewVar(par)
+        discard new_env.SetVar(par, args[ind])
         ind += 1
 
-      ec.worker.param_stack.Push(params)
+      ec.vars = new_env
       let ret = ExecuteLines(ec, ec.defined_functions[exp.func_name].body)
-      discard ec.worker.param_stack.Pop()
+      ec.vars = new_env.parent
       ret
 
     else:

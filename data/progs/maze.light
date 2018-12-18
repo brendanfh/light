@@ -1,0 +1,100 @@
+@get_linear($pos) {
+	!get_col($pos % !get_width(), $pos / !get_width())
+}
+
+@set_linear($pos, $val) {
+	!set_col($pos % !get_width(), $pos / !get_width(), $val)	
+}
+
+@push_pos($x, $y) {
+	var $color_enc = ($y * 256 * 256) + $x
+
+	var $off = !get_col(0, 0) + 1
+	!set_linear($off, $color_enc)
+
+	!set_col(0, 0, $off)
+}
+
+@top_pos() {
+	var $off = !get_col(0, 0)
+	!get_linear($off)
+}
+
+@pop_pos() {
+	var $off = !get_col(0, 0)
+	!set_linear($off, 0)
+	!set_col(0, 0, $off - 1)
+	0
+}
+
+@get_stack_height() {
+	!get_col(0, 0)
+}
+
+//Fills memory with defaults
+@clear_board() {
+	var $x
+	var $y = 20
+	while $y < !get_height() {
+		$x = 0
+		while $x < !get_width() {
+			!set_col($x, $y, 255)
+			$x = $x + 1
+		}
+		$y = $y + 1
+	}
+}
+
+@generate_maze() {
+	var $x = 1
+	var $y = 21
+	var $loc
+	var $available_count
+	var $dir
+	var $dx
+	var $dy
+
+	!push_pos($x, $y)
+	!set_col($x, $y, 50)
+	while !get_stack_height() > 0 {
+		$loc = !top_pos()
+		$x = $loc % (256 * 256)
+		$y = $loc / (256 * 256)
+
+		$available_count = 0
+		$available_count = $available_count + !get_col($x, $y - 2) == 255
+		$available_count = $available_count + !get_col($x - 2, $y) == 255
+		$available_count = $available_count + !get_col($x + 2, $y) == 255
+		$available_count = $available_count + !get_col($x, $y + 2) == 255
+
+		if $available_count {
+			while 1 {
+				//Random direction
+				$dir = !random(4)
+
+				// dx and dy
+				$dx = $dy = 0
+
+				if $dir == 0 { $dx = -2 }
+				if $dir == 1 { $dx =  2 }
+				if $dir == 2 { $dy =  2 }
+				if $dir == 3 { $dy = -2 }
+
+				if !in_bounds($x + $dx, $y + $dy) {
+					if !get_col($x + $dx, $y + $dy) == 255 {
+						!set_col($x + $dx, $y + $dy, 50)
+						!set_col($x + $dx / 2, $y + $dy / 2, 50)
+						!push_pos($x + $dx, $y + $dy)
+						break
+					}
+				}
+			}
+		} else {
+			!pop_pos()
+		}
+		!render()
+	}
+}
+
+!clear_board()
+!generate_maze()

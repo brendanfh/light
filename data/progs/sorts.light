@@ -1,0 +1,177 @@
+var $width = !get_width()
+var $height = !get_height()
+
+//Util functions
+@get_linear($pos) {
+	!get_col($pos % $width, $pos / $width)
+}
+
+@set_linear($pos, $val) {
+	!set_col($pos % $width, $pos / $width, $val)	
+}
+
+@swap_linear($p1, $p2) {
+	var $tmp = !get_col($p1 % $width, $p1 / $width)
+	!set_col($p1 % $width, $p1 / $width, !get_col($p2 % $width, $p2 / $width))
+	!set_col($p2 % $width, $p2 / $width, $tmp)
+}
+
+@fill_with_random() {
+	var $x = 0
+	var $y = 0
+	var $rgb
+
+	$y = 0
+	while $y < !get_height() {
+		$x = 0
+		while $x < !get_width() {
+			$rgb = !random(2)
+
+			!set_r($x, $y, if $rgb == 0 { !random(255) })
+			!set_g($x, $y, if $rgb == 1 { !random(255) })
+			!set_b($x, $y, if $rgb == 2 { !random(255) })
+			$x = $x + 1
+		}
+		$y = $y + 1
+	}
+}
+
+//Sorting functions
+
+@selection_sort($start, $end) {
+	var $tmp
+	var $small_val
+	var $small_ind
+	var $j
+	var $i = $start
+	while $i < $end {
+		$small_val = !get_linear($i)
+		$small_ind = $i
+		$j = $i + 1
+		while $j < $end {
+			if !get_linear($j) < $small_val {
+				$small_val = !get_linear($j)	
+				$small_ind = $j
+			}
+
+			$j = $j + 1
+		}
+
+		!swap_linear($i, $small_ind)
+		!render()
+		$i = $i + 1
+	}
+}
+
+@bubble_sort($start, $end) {
+	var $i
+	var $j
+	var $tmp
+
+	$i = 0
+	while $i < ($end - 1) {
+		$j = 0
+		while $j < ($end - ($i + 1)) {
+			if !get_linear($j) > !get_linear($j + 1) {
+				!swap_linear($j, $j + 1)
+			}
+
+			$j = $j + 1
+		}
+		!render()
+		$i = $i + 1
+	}
+}
+
+@insertion_sort($start, $end) {
+	var $tmp
+	var $j = 0
+	var $i = $start + 1
+	while $i < $end {
+		$j = $i
+		while !get_linear($j) < !get_linear($j - 1) {
+			!swap_linear($j, $j - 1)
+			$j = $j - 1
+		}
+
+		$i = $i + 1
+		!render()
+	}
+}
+
+@shell_sort($start, $end) {
+	var $k
+	var $i
+	var $n
+
+	$k = $end / 2
+	while $k > 0 {
+		$i = $k
+		while $i < $end {
+			$n = $i - $k
+			while $n >= 0 {
+				if !get_linear($n + $k) >= !get_linear($n) {
+					break
+				} else {
+					!swap_linear($n, $n + $k)
+				}
+
+				$n = $n - $k
+			}
+
+			//Used to make it look cool
+			if ($i % 4) == 0 { !render() }
+			$i = $i + 1
+		}
+		$k = $k / 2
+	}
+}
+
+@quick_partition($low, $high) {
+	var $pivot = !get_linear($high)
+	var $i = $low
+	var $j = $low
+	while $j < $high {
+		if !get_linear($j) <= $pivot {
+			!swap_linear($i, $j)
+			$i = $i + 1
+		}
+
+		$j = $j + 1
+	}
+
+	!swap_linear($i, $high)
+	$i
+}
+
+@quick_sort($low, $high) {
+	if $low < $high {
+		var $pi = !quick_partition($low, $high)
+
+		!quick_sort($low, $pi - 1)
+		!render()
+		!quick_sort($pi + 1, $high)
+		!render()
+	}
+}
+
+
+!fill_with_random()
+!render()
+!bubble_sort(0, !get_width() * !get_height())
+
+!fill_with_random()
+!render()
+!selection_sort(0, !get_width() * !get_height())
+
+!fill_with_random()
+!render()
+!insertion_sort(0, !get_width() * !get_height())
+
+!fill_with_random()
+!render()
+!shell_sort(0, !get_width() * !get_height())
+
+!fill_with_random()
+!render()
+!quick_sort(0, (!get_width() * !get_height()) - 1)

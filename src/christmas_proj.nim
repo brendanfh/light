@@ -43,62 +43,47 @@ proc CreateFuncs(window: gfx_window.Window, board: LightBoard): ExecFuncs =
     ),
 
     "set_col": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.SetCol(ec.worker.pos_x.int, ec.worker.pos_y.int, args[0].GLuint)
+      board.SetCol(args[0].int, args[1].int, args[2].GLuint)
     ),
 
     "set_a": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.SetA(ec.worker.pos_x.int, ec.worker.pos_y.int, args[0].GLuint)
+      board.SetA(args[0].int, args[1].int, args[2].GLuint)
     ),
 
     "set_r": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.SetR(ec.worker.pos_x.int, ec.worker.pos_y.int, args[0].GLuint)
+      board.SetR(args[0].int, args[1].int, args[2].GLuint)
     ),
 
     "set_g": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.SetG(ec.worker.pos_x.int, ec.worker.pos_y.int, args[0].GLuint)
+      board.SetG(args[0].int, args[1].int, args[2].GLuint)
     ),
 
     "set_b": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.SetB(ec.worker.pos_x.int, ec.worker.pos_y.int, args[0].GLuint)
+      board.SetB(args[0].int, args[1].int, args[2].GLuint)
     ),
 
     "get_col": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.GetCol(ec.worker.pos_x.int, ec.worker.pos_y.int).int32
+      board.GetCol(args[0].int, args[1].int).int32
     ),
 
     "get_a": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.GetA(ec.worker.pos_x.int, ec.worker.pos_y.int).int32
+      board.GetA(args[0].int, args[1].int).int32
     ),
 
     "get_r": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.GetR(ec.worker.pos_x.int, ec.worker.pos_y.int).int32
+      board.GetR(args[0].int, args[1].int).int32
     ),
 
     "get_g": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.GetG(ec.worker.pos_x.int, ec.worker.pos_y.int).int32
+      board.GetG(args[0].int, args[1].int).int32
     ),
 
     "get_b": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      board.GetB(ec.worker.pos_x.int, ec.worker.pos_y.int).int32
+      board.GetB(args[0].int, args[1].int).int32
     ),
 
     "random": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
       random.rand(args[0].int).int32
-    ),
-
-    "step_linear": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      ec.worker.pos_x += args[0]
-      while ec.worker.pos_x >= board.width:
-        ec.worker.pos_x -= board.width.LightInt
-        ec.worker.pos_y += 1
-      while ec.worker.pos_x < 0:
-        ec.worker.pos_x += board.width.LightInt
-        ec.worker.pos_y -= 1
-    ),
-
-    "step_to_linear": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =
-      ec.worker.pos_x = args[0] mod (board.width.int32)
-      ec.worker.pos_y = args[0] div (board.width.int32)
     ),
 
     "halt": (proc(ec: ExecutionContext, args: openarray[int32]): int32 {.closure.} =

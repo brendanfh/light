@@ -8,8 +8,8 @@ type
 proc CreateIter*[T](items: seq[T], empty: T): Iter[T] =
   Iter[T](curr: 0, list: items, length: items.len, empty: empty)
 
-proc Step*[T](iter: Iter[T]) =
-  iter.curr += 1
+proc Step*[T](iter: Iter[T], off: int = 1) =
+  iter.curr += off
 
 func ReachedEnd*[T](iter: Iter[T]): bool =
   iter.curr >= iter.length
@@ -20,15 +20,15 @@ proc Current*[T](iter: Iter[T]): T =
 
   return iter.list[iter.curr]
 
-proc Previous*[T](iter: Iter[T]): T =
-  if iter.curr - 1 < 0 or iter.curr - 1 >= iter.length:
+proc Previous*[T](iter: Iter[T], off: int = 1): T =
+  if iter.curr - off < 0 or iter.curr - off >= iter.length:
     return iter.empty
 
-  return iter.list[iter.curr - 1]
+  return iter.list[iter.curr - off]
 
-proc Next*[T](iter: Iter[T]): T =
-  if iter.curr + 1 < 0 or iter.curr + 1 >= iter.length:
+proc Next*[T](iter: Iter[T], off: int = 1): T =
+  if iter.curr + off < 0 or iter.curr + off >= iter.length:
     return iter.empty
 
-  return iter.list[iter.curr + 1]
+  return iter.list[iter.curr + off]
 

@@ -1,0 +1,94 @@
+//Assumes 128 by 128 board
+var $board_width = !get_width()
+var $board_height = !get_height()
+
+var $cell_alive = 255
+var $cell_dead = 0
+
+@create_board() {
+	var $x
+	var $y
+
+	// Set up initial board
+	$y = 0
+	while $y < $board_height {
+		$x = 0
+		while $x < $board_width {
+			if !random(100) >= 50 {
+				!set_r($x, $y, $cell_alive)
+			} else {
+				!set_r($x, $y, $cell_dead)
+			}
+			$x = $x + 1
+		}
+		$y = $y + 1
+	}
+}
+
+@update_cell($x, $y) {
+	var $neighbors = 0
+	var $x_off
+	var $y_off
+
+	$y_off = -1
+	while $y_off <= 1 {
+		$x_off = -1
+		while $x_off <= 1 {
+			if ($y_off ~= 0) | ($x_off ~= 0) {
+				if !get_a($x_off + $x, $y_off + $y) == $cell_alive {
+					$neighbors = $neighbors + 1
+				}
+			}
+			$x_off = $x_off + 1
+		}
+		$y_off = $y_off + 1
+	}
+
+	if !get_a($x, $y) == $cell_alive {
+		if ($neighbors < 2) | ($neighbors > 3) {
+			!set_r($x, $y, $cell_dead)
+		}
+	} else {
+		if $neighbors == 3 {
+			!set_r($x, $y, $cell_alive)
+		}
+	}
+}
+
+@copy_board() {
+	var $x
+	var $y
+
+	$y = 0
+	while $y < $board_height {
+		$x = 0
+		while $x < $board_width {
+			!set_a($x, $y, !get_r($x, $y))
+
+			$x = $x + 1
+		}
+		$y = $y + 1
+	}
+}
+
+!create_board()
+
+//Big render / update loop
+var $x
+var $y
+while 1 {
+	//Draw the board
+	!render()
+
+	!copy_board()
+
+	$y = 0
+	while $y < $board_height {
+		$x = 0
+		while $x < $board_width {
+			!update_cell($x, $y)
+			$x = $x + 1
+		}
+		$y = $y + 1
+	}
+}

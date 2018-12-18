@@ -28,31 +28,13 @@ iterator Generate_tokens*(source: string): LightToken =
         continue
 
       if token.startsWith('$'):
-        let varString = token[1 .. ^1].toLowerAscii
-        var varName: LightVariable
+        let varName = token[1 .. ^1].toLowerAscii
 
-        if varString == "":
+        if varName == "":
           raise newException(IOError, "Expected variable name")
-        else:
-          if   varString == "m1": varName = var_m1
-          elif varString == "m2": varName = var_m2
-          elif varString == "m3": varName = var_m3
-          elif varString == "m4": varName = var_m4
-          elif varString == "m5": varName = var_m5
-          elif varString == "m6": varName = var_m6
-          elif varString == "m7": varName = var_m7
-          elif varString == "m8": varName = var_m8
-          elif varString == "p1": varName = var_p1
-          elif varString == "p2": varName = var_p2
-          elif varString == "p3": varName = var_p3
-          elif varString == "p4": varName = var_p4
-          elif varString == "x": varName = var_x
-          elif varString == "y": varName = var_y
-          else:
-            raise newException(IOError, "Invalid variable name.")
-
+        
         yield LightToken(kind: ltVar, var_name: varName)
-
+      
       elif token.startsWith('!'):
         let funcName = token[1..^1].toLowerAscii
         yield LightToken(kind: ltFunc, func_name: funcName)
@@ -70,6 +52,8 @@ iterator Generate_tokens*(source: string): LightToken =
 
         yield LightToken(kind: ltNum, value: value.LightInt)
 
+      elif token == "var":
+        yield LightToken(kind: ltVarDef)
       elif token.toLowerAscii == "if":
         yield LightToken(kind: ltIf)
       elif token.toLowerAscii == "else":
