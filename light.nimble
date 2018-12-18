@@ -5,7 +5,7 @@ author        = "Brendan Hansen"
 description   = "A new awesome nimble package"
 license       = "MIT"
 srcDir        = "src"
-bin           = @["christmas_proj"]
+bin           = @["light"]
 
 
 # Dependencies
@@ -17,4 +17,4 @@ requires "nimrod-glfw"
 
 task run, "Run project":
   exec("nimble build -d:release")
-  exec("./christmas_proj")
+  exec("./light")
